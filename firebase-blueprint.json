@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user profile in MidenHub",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string" },
+        "walletAddress": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "bio": { "type": "string" },
+        "githubUrl": { "type": "string" },
+        "twitterUrl": { "type": "string" },
+        "isAdmin": { "type": "boolean" }
+      },
+      "required": ["username", "isAdmin"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "A project listed on MidenHub",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "githubUrl": { "type": "string" },
+        "demoUrl": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["title", "description", "category", "ownerId", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles. Moderable by admins or self."
+    },
+    "projects/{projectId}": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "Projects submitted to the platform. Read by all (if approved) or owners. Admins can update status."
+    }
+  }
+}
