@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
+import { uploadImageToStorage } from '@/lib/storage';
 import { handleFirestoreError, OperationType } from '@/lib/firestore-errors';
+import Preloader from '@/components/Preloader';
 
 export default function Submit() {
   const { user, profile, loading } = useAuth();
@@ -51,7 +53,6 @@ export default function Submit() {
       return;
     }
 
-    // URL Validations
     try {
       if (formData.githubUrl) new URL(formData.githubUrl);
       if (formData.demoUrl) new URL(formData.demoUrl);
@@ -65,7 +66,6 @@ export default function Submit() {
       return;
     }
 
-    // Image Validation (Mock 5MB limit)
     if (image && image.size > 5 * 1024 * 1024) {
       setErrorMessage('File Error: The uploaded cover image must be less than 5MB.');
       return;
@@ -75,9 +75,20 @@ export default function Submit() {
     setSubmitting(true);
 
     try {
-      // In a real app we'd upload the image to Firebase Storage and get URL here
-      // For now we will just use a generic placeholder or data url if we wanted to
-      const imageUrl = '';
+      let imageUrl = '';
+      if (image) {
+        try {
+          imageUrl = await uploadImageToStorage(image, `projects/${user.uid}_${Date.now()}`);
+        } catch (uploadError: any) {
+          console.error("Upload error falling back to base64", uploadError);
+          imageUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(image);
+          });
+        }
+      }
 
       const projectData = {
         title: formData.title,
@@ -88,7 +99,7 @@ export default function Submit() {
         ownerId: user.uid,
         status: 'pending',
         imageUrl: imageUrl,
-        createdAt: Date.now(), // Fallback before server timestamp syncs
+        createdAt: Date.now(), 
         updatedAt: Date.now(),
       };
 
@@ -97,7 +108,6 @@ export default function Submit() {
     } catch (error: any) {
       handleFirestoreError(error, OperationType.CREATE, 'projects', auth);
       
-      // Parse detailed error if possible
       if (error && typeof error.message === 'string') {
         if (error.message.includes('permission-denied') || error.message.includes('Missing or insufficient permissions')) {
           setErrorMessage('Permission Error: You do not have permission to submit this project. Ensure you are logged in and eligible.');
@@ -114,7 +124,7 @@ export default function Submit() {
     }
   };
 
-  if (loading) return <div className="p-12 text-center text-white">Loading...</div>;
+  if (loading) return <Preloader message="Loading Submission Form..." />;
   if (!user) return null;
 
   return (

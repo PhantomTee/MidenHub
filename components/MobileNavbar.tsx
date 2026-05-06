@@ -12,11 +12,11 @@ export default function MobileNavbar() {
   const { user, isAdmin } = useAuth();
 
   const links = [
-    { href: user ? '#' : '/login', label: user ? 'Logout' : 'Login', icon: user ? <LogOut className="w-6 h-6" /> : <LogIn className="w-6 h-6" />, protected: false, onClick: user ? () => signOut(auth) : undefined },
+    { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-6 h-6" />, protected: true },
     { href: '/explore', label: 'Explore', icon: <Compass className="w-6 h-6" />, protected: false },
     { href: '/submit', label: 'Submit', icon: <PlusCircle className="w-6 h-6" />, protected: true },
     { href: '/profile', label: 'Profile', icon: <User className="w-6 h-6" />, protected: true },
-    { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-6 h-6" />, protected: true },
+    { href: user ? '#' : '/login', label: user ? 'Logout' : 'Login', icon: user ? <LogOut className="w-6 h-6" /> : <LogIn className="w-6 h-6" />, protected: false, onClick: user ? () => signOut(auth) : undefined },
   ];
 
   return (

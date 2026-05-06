@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { handleFirestoreError, OperationType } from '@/lib/firestore-errors';
+import Preloader from '@/components/Preloader';
 
 interface Project {
   id: string;
@@ -60,7 +61,7 @@ export default function Explore() {
 
   const filtered = filter === 'All' ? projects : projects.filter(p => p.category === filter);
 
-  if (loading) return <div className="flex justify-center items-center h-64 text-white">Loading ecosystem...</div>;
+  if (loading) return <Preloader message="Loading Ecosystem..." />;
   if (error) return <div className="flex flex-col justify-center items-center h-64 text-red-500 bg-red-500/10 p-6 border border-red-500/50">
     <p className="font-bold mb-2">Error loading ecosystem:</p>
     <p className="text-sm">{error.includes('index') ? 'A Firestore composite index is missing. Check the console for the creation link.' : error}</p>

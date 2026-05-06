@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { collection, query, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { handleFirestoreError, OperationType } from '@/lib/firestore-errors';
+import Preloader from '@/components/Preloader';
 
 interface Project {
   id: string;
@@ -73,7 +74,7 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading || fetching) return <div className="p-12 text-center text-white">Loading admin view...</div>;
+  if (loading || fetching) return <Preloader message="Loading Admin Dashboard..." />;
   if (error) return <div className="p-12 text-center text-red-500 bg-red-500/10 border border-red-500/50 m-6">{error}</div>;
   if (!isAdmin) return null;
 
