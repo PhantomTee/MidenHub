@@ -5,6 +5,7 @@ import { signInAnonymously, TwitterAuthProvider, GithubAuthProvider, linkWithPop
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { handleFirestoreError, OperationType } from '@/lib/firestore-errors';
+import WalletConnectModal from '@/components/WalletConnectModal';
 
 // Add isProfileComplete to the type
 export interface MidenUserProfile {
@@ -24,7 +25,7 @@ interface MidenAuthContextType {
   accountId: string | null;
   isAdmin: boolean;
   loading: boolean;
-  loginWithMiden: () => Promise<void>;
+  loginWithMiden: () => void; // changed from Promise<void> for modal trigger
   linkTwitter: () => Promise<void>;
   linkGithub: () => Promise<void>;
   logout: () => Promise<void>;
@@ -37,7 +38,7 @@ export const MidenAuthContext = createContext<MidenAuthContextType>({
   accountId: null,
   isAdmin: false,
   loading: true,
-  loginWithMiden: async () => {},
+  loginWithMiden: () => {},
   linkTwitter: async () => {},
   linkGithub: async () => {},
   logout: async () => {},
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<MidenUserProfile | null>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
   // Restore account ID from local storage
   useEffect(() => {
@@ -60,23 +62,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (uid: string, mId: string) => {
     try {
-      const docRef = doc(db, 'users', mId); // The user says: "Use the accountId as the document ID"
+      // Use mId (Miden Address) as the document ID to match the new architecture
+      const docRef = doc(db, 'users', mId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setProfile(docSnap.data() as MidenUserProfile);
       } else {
-        const defaultProfile: MidenUserProfile = {
-          username: `Builder_${mId.slice(0, 6)}`,
-          walletAddress: mId,
-          avatarUrl: '',
-          bio: '',
-          githubUrl: '',
-          twitterUrl: '',
-          isAdmin: false,
-          isProfileComplete: false,
-        };
-        await setDoc(docRef, defaultProfile);
-        setProfile(defaultProfile);
+        setProfile(null);
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, `users/${mId}`, auth);
@@ -98,46 +90,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, [accountId]);
 
-  const loginWithMiden = async () => {
+  const loginWithMiden = () => {
+    setIsWalletModalOpen(true);
+  };
+
+  const actualLoginWithMiden = async () => {
     try {
       setLoading(true);
-      // 1. Init Miden WebClient
-      const { MidenClient, AccountStorageMode } = await import('@miden-sdk/miden-sdk');
-      const client = await MidenClient.createTestnet();
-
-      let addr = localStorage.getItem("miden_account_id");
-
-      if (!addr) {
-        // Generating a new Wallet
-        const newAccount = await client.accounts.create({
-          storage: 'private'
-        });
-        addr = newAccount.id().toString();
-      } else {
-        // In reality, this would just fetch the account to ensure it's still accessible.
-        // E.g. getAccount(addr) but since local storage serves as our local ID cache...
-      }
-
-      // Proving control can involve signing a transaction or requesting unauthenticated note (placeholder comment for now)
-      // await client.syncState(); 
-
-      // Terminate client
-      client.terminate();
-
-      // Store in local storage
-      localStorage.setItem("miden_account_id", addr as string);
-      setAccountId(addr as string);
-
-      // Sign in to Firebase Auth (Anonymously) so we have standard Firebase capabilities
-      const userCred = await signInAnonymously(auth);
       
-      // The profile fetch will be triggered by onAuthStateChanged listener above, 
-      // but ensure we try to get or create document instantly
-      await fetchProfile(userCred.user.uid, addr as string);
+      const provider = typeof window !== 'undefined' ? (window as any).midenWallet : null;
+      
+      if (!provider) {
+        alert("Miden Wallet extension not detected! Please install the Miden Wallet extension.");
+        setIsWalletModalOpen(false);
+        setLoading(false);
+        return;
+      }
+      
+      const accounts = await provider.request({ method: 'miden_requestAccounts' });
 
+      if (accounts && accounts.length > 0) {
+        const addr = accounts[0];
+        
+        // Store in local storage
+        localStorage.setItem("miden_account_id", addr);
+        setAccountId(addr);
+
+        // Sign in to Firebase Auth (Anonymously) so we have standard Firebase capabilities
+        const userCred = await signInAnonymously(auth);
+        
+        // The profile fetch will be triggered by onAuthStateChanged listener above, 
+        // but ensure we try to get or create document instantly
+        await fetchProfile(userCred.user.uid, addr);
+
+        setIsWalletModalOpen(false); // Close Modal on success
+      }
     } catch (error) {
       console.error("Miden Login Failed", error);
       alert("Failed to connect Miden Wallet");
+      setIsWalletModalOpen(false); // Close on error
     } finally {
       setLoading(false);
     }
@@ -149,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const provider = new TwitterAuthProvider();
       const userCred = await linkWithPopup(user, provider);
       // Update our document
-      const docRef = doc(db, 'users', accountId);
+      const docRef = doc(db, 'users', user.uid);
       const twitterHandle = userCred.user.displayName || ""; // Simplified handle fetch
       
       await updateDoc(docRef, { 
@@ -169,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const provider = new GithubAuthProvider();
       const userCred = await linkWithPopup(user, provider);
       
-      const docRef = doc(db, 'users', accountId);
+      const docRef = doc(db, 'users', user.uid);
       // user.providerData can parse GitHub email/displayName
       let ghHandle = "";
       // Normally userCred.user.providerData[...].uid or screenName is available
@@ -198,6 +189,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <MidenAuthContext.Provider value={{ user, profile, accountId, isAdmin: profile?.isAdmin || false, loading, loginWithMiden, linkTwitter, linkGithub, logout, refreshProfile: async () => { if (user && accountId) await fetchProfile(user.uid, accountId); } }}>
       {children}
+      <WalletConnectModal 
+        isOpen={isWalletModalOpen} 
+        onClose={() => setIsWalletModalOpen(false)} 
+        onConnect={actualLoginWithMiden} 
+      />
     </MidenAuthContext.Provider>
   );
 }

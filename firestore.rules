@@ -12,24 +12,8 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    match /users/{userId} {
-      function isValidUser(data) {
-        return data.keys().hasAny(['username', 'isAdmin']) &&
-               data.get('username', '') is string &&
-               data.get('walletAddress', '') is string &&
-               data.get('avatarUrl', '') is string &&
-               data.get('bio', '') is string &&
-               data.get('githubUrl', '') is string &&
-               data.get('twitterUrl', '') is string &&
-               data.get('isProfileComplete', false) is bool &&
-               data.isAdmin is bool;
-      }
-      
-      allow get: if true; 
-      allow list: if true;
-      allow create: if isSignedIn() && request.auth.uid == userId && isValidUser(request.resource.data) && request.resource.data.isAdmin == false;
-      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin()) && isValidUser(request.resource.data) &&
-        (isAdmin() || request.resource.data.isAdmin == resource.data.isAdmin);
+    match /users/{midenAddress} {
+      allow read, write: if request.auth != null;
     
       match /notifications/{notificationId} {
         function isValidNotification(data) {
