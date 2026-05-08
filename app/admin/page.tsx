@@ -25,16 +25,6 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (!loading) {
-      if (!user || !isAdmin) {
-        router.push('/');
-      } else {
-        fetchProjects();
-      }
-    }
-  }, [user, isAdmin, loading, router]);
-
   async function fetchProjects() {
     try {
       const q = query(collection(db, 'projects'));
@@ -49,7 +39,17 @@ export default function AdminDashboard() {
     } finally {
       setFetching(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    if (!loading) {
+      if (!user || !isAdmin) {
+        router.push('/');
+      } else {
+        fetchProjects();
+      }
+    }
+  }, [user, isAdmin, loading, router]);
 
   const handleUpdateStatus = async (id: string, newStatus: string, ownerId: string, title: string) => {
     try {

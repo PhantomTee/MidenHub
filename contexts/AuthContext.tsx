@@ -102,20 +102,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       // 1. Init Miden WebClient
-      const { WebClient, AccountStorageMode } = await import('@miden-sdk/miden-sdk');
-      const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443";
-      // @ts-ignore
-      const client = await WebClient.createClient(RPC_ENDPOINT);
+      const { MidenClient, AccountStorageMode } = await import('@miden-sdk/miden-sdk');
+      const client = await MidenClient.createTestnet();
 
       let addr = localStorage.getItem("miden_account_id");
 
       if (!addr) {
         // Generating a new Wallet
-        const newAccount = await client.newWallet(
-          AccountStorageMode.private(),
-          true
-        );
-        addr = newAccount.id().toBech32();
+        const newAccount = await client.accounts.create({
+          storage: 'private'
+        });
+        addr = newAccount.id().toString();
       } else {
         // In reality, this would just fetch the account to ensure it's still accessible.
         // E.g. getAccount(addr) but since local storage serves as our local ID cache...

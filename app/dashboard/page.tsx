@@ -37,26 +37,6 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    if (!loading && (!user || !profile?.walletAddress)) {
-      router.push('/');
-    } else if (user && profile) {
-      fetchProjects();
-    }
-  }, [user, profile, loading, router]);
-
-  useEffect(() => {
-    if (profile) {
-      setFormData({
-        username: profile.username || '',
-        walletAddress: profile.walletAddress || '',
-        bio: profile.bio || '',
-        githubUrl: profile.githubUrl || '',
-        twitterUrl: profile.twitterUrl || '',
-      });
-    }
-  }, [profile]);
-
   async function fetchProjects() {
     try {
       let q;
@@ -82,7 +62,29 @@ export default function Dashboard() {
     } finally {
       setDataLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    if (!loading && (!user || !profile?.walletAddress)) {
+      router.push('/');
+    } else if (user && profile) {
+      fetchProjects();
+    }
+  }, [user, profile, loading, router]);
+
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        username: profile.username || '',
+        walletAddress: profile.walletAddress || '',
+        bio: profile.bio || '',
+        githubUrl: profile.githubUrl || '',
+        twitterUrl: profile.twitterUrl || '',
+      });
+    }
+  }, [profile]);
+
+
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
