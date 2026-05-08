@@ -127,18 +127,25 @@ export default function Dashboard() {
       const { WebClient, AccountStorageMode } = await import('@miden-sdk/miden-sdk');
       const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443";
       
-      // @ts-ignore - The typescript definition differs from the actual Miden SDK runtime API per user quickstart
+      // @ts-ignore
       const client = await WebClient.createClient(RPC_ENDPOINT);
-      const newAccount = await client.newWallet(
-          AccountStorageMode.private(), 
-          true 
-      );
       
-      const addr = newAccount.id().toBech32();
-      setFormData({ ...formData, walletAddress: addr });
+      let addr = localStorage.getItem("account_id");
+      
+      if (!addr) {
+        // Fallback: Create new account if no existing wallet is found in browser
+        const newAccount = await client.newWallet(
+            AccountStorageMode.private(), 
+            true 
+        );
+        addr = newAccount.id().toBech32();
+        localStorage.setItem("account_id", addr as string);
+      }
+      
+      setFormData({ ...formData, walletAddress: addr as string });
       client.terminate();
     } catch (err: any) {
-      alert('Failed to generate Miden wallet: ' + err.message);
+      alert('Failed to generate/pick Miden wallet: ' + err.message);
     }
   };
 
@@ -176,9 +183,11 @@ export default function Dashboard() {
                 {profile.username || 'Anonymous User'}
               </h1>
               {profile.walletAddress && (
-                <div className="flex items-center space-x-2 text-white/50 text-xs font-mono mb-2">
+                <div className="flex items-center space-x-2 text-[#ff6a00] text-xs font-mono mb-2 bg-[#ff6a00]/10 px-2 py-1 rounded">
                   <Wallet className="w-4 h-4" />
-                  <span>{profile.walletAddress.slice(0, 6)}...{profile.walletAddress.slice(-4)}</span>
+                  <span className="truncate max-w-[150px] sm:max-w-[200px]" title={profile.walletAddress}>
+                    {profile.walletAddress}
+                  </span>
                 </div>
               )}
               <div className="flex space-x-4">
@@ -282,15 +291,20 @@ export default function Dashboard() {
                     value={formData.walletAddress}
                     onChange={(e) => setFormData({...formData, walletAddress: e.target.value})}
                     placeholder="Connect Miden Wallet..."
-                    disabled={!!profile.walletAddress}
+                    disabled={!!profile.walletAddress && !profile.walletAddress.startsWith('0x')}
                     className="w-full border border-white/20 bg-black/50 p-4 focus:outline-none focus:border-[#ff6a00] transition-colors font-mono text-sm disabled:opacity-50"
                   />
-                  {!profile.walletAddress && (
+                  {(!profile.walletAddress || profile.walletAddress.startsWith('0x')) && (
                     <button type="button" onClick={connectWallet} className="shrink-0 border border-[#ff6a00] text-[#ff6a00] px-4 py-4 uppercase tracking-widest text-xs font-bold hover:bg-[#ff6a00] hover:text-black transition-colors">
                       Connect Miden
                     </button>
                   )}
                 </div>
+                {profile.walletAddress?.startsWith('0x') && (
+                  <p className="text-red-500 text-xs font-bold uppercase mt-2">
+                    Legacy mock detected. Please reconnect using the official Miden integration.
+                  </p>
+                )}
               </div>
             </div>
 

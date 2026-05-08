@@ -29,7 +29,7 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.auth.uid == userId && isValidUser(request.resource.data) && request.resource.data.isAdmin == false;
       allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin()) && isValidUser(request.resource.data) &&
         (isAdmin() || request.resource.data.isAdmin == resource.data.isAdmin) &&
-        (resource.data.get('walletAddress', '') == '' || request.resource.data.get('walletAddress', '') == resource.data.get('walletAddress', ''));
+        (resource.data.get('walletAddress', '') == '' || resource.data.get('walletAddress', '').matches('^0x.*') || request.resource.data.get('walletAddress', '') == resource.data.get('walletAddress', ''));
     }
 
     function userHasMidenWallet() {
