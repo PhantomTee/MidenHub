@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { Compass, PlusCircle, LayoutDashboard, User, LogIn, LogOut } from 'lucide-react';
+import { Compass, PlusCircle, LayoutDashboard, User, LogIn, LogOut, BookOpen } from 'lucide-react';
 
 export default function MobileNavbar() {
   const pathname = usePathname();
@@ -14,8 +14,8 @@ export default function MobileNavbar() {
   const links = [
     { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-6 h-6" />, protected: true },
     { href: '/explore', label: 'Explore', icon: <Compass className="w-6 h-6" />, protected: false },
+    { href: '/resources', label: 'Info', icon: <BookOpen className="w-6 h-6" />, protected: false },
     { href: '/submit', label: 'Submit', icon: <PlusCircle className="w-6 h-6" />, protected: true },
-    { href: '/profile', label: 'Profile', icon: <User className="w-6 h-6" />, protected: true },
     { href: user ? '#' : '/login', label: user ? 'Logout' : 'Login', icon: user ? <LogOut className="w-6 h-6" /> : <LogIn className="w-6 h-6" />, protected: false, onClick: user ? () => signOut(auth) : undefined },
   ];
 

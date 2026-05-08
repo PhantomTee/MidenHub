@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import MobileNavbar from "@/components/MobileNavbar";
+import BackgroundOrbs from "@/components/BackgroundOrbs";
 import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
 
@@ -16,10 +17,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-black text-white font-sans min-h-screen flex flex-col antialiased">
+      <body className="bg-black text-white font-sans min-h-screen flex flex-col antialiased relative z-0">
+        <BackgroundOrbs />
         <AuthProvider>
           <Navbar />
-          <main className="flex-1 flex flex-col overflow-x-hidden bg-[#0a0a0a]">
+          <main className="flex-1 flex flex-col overflow-x-hidden bg-transparent">
             {children}
           </main>
           <MobileNavbar />

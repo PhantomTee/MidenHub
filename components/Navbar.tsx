@@ -14,6 +14,7 @@ export default function Navbar() {
 
   const links = [
     { href: '/explore', label: 'Explore', icon: <Compass className="w-5 h-5" />, protected: false },
+    { href: '/resources', label: 'Resources', protected: false },
     { href: '/submit', label: 'Submit', icon: <PlusCircle className="w-5 h-5" />, protected: true },
     { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, protected: true },
     { href: '/profile', label: 'Profile', icon: <User className="w-5 h-5" />, protected: true },
