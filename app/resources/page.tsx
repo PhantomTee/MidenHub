@@ -58,18 +58,18 @@ export default function Resources() {
         </a>
 
         {/* Resource Card 4 */}
-        <a href="https://polygon.technology/polygon-miden" target="_blank" rel="noopener noreferrer" className="block border border-white/20 bg-black/50 p-6 hover:border-[#ff6a00] hover:bg-white/5 transition-all group">
+        <a href="https://play.miden.network" target="_blank" rel="noopener noreferrer" className="block border border-white/20 bg-black/50 p-6 hover:border-[#ff6a00] hover:bg-white/5 transition-all group">
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-6 h-6 border-2 border-[#ff6a00] rounded flex items-center justify-center">
               <span className="w-2 h-2 bg-[#ff6a00] rounded-full"></span>
             </div>
-            <h2 className="text-xl font-bold uppercase tracking-widest group-hover:text-[#ff6a00] transition-colors">Miden Portal</h2>
+            <h2 className="text-xl font-bold uppercase tracking-widest group-hover:text-[#ff6a00] transition-colors">Miden Playground</h2>
           </div>
           <p className="text-white/60 text-sm leading-relaxed mb-4">
-            The high-level overview of Polygon Miden. Understand the unique value propositions, state models, and scalable capabilities.
+            Experiment with Miden's novel architecture in our very own training environment.
           </p>
           <div className="flex items-center text-[#ff6a00] text-xs font-bold uppercase tracking-widest">
-            <span>Visit Portal</span>
+            <span>Visit Playground</span>
             <ExternalLink className="w-3 h-3 ml-2" />
           </div>
         </a>

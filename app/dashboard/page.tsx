@@ -123,17 +123,22 @@ export default function Dashboard() {
   };
 
   const connectWallet = async () => {
-    if (typeof window !== 'undefined' && (window as any).ethereum) {
-      try {
-        const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
-        if (accounts.length > 0) {
-          setFormData({ ...formData, walletAddress: accounts[0] });
-        }
-      } catch (err: any) {
-        alert('Failed to connect wallet: ' + err.message);
-      }
-    } else {
-      alert('No Web3 wallet extension found. Please install MetaMask, Phantom, or a compatible extension.');
+    try {
+      const { WebClient, AccountStorageMode } = await import('@miden-sdk/miden-sdk');
+      const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443";
+      
+      // @ts-ignore - The typescript definition differs from the actual Miden SDK runtime API per user quickstart
+      const client = await WebClient.createClient(RPC_ENDPOINT);
+      const newAccount = await client.newWallet(
+          AccountStorageMode.private(), 
+          true 
+      );
+      
+      const addr = newAccount.id().toBech32();
+      setFormData({ ...formData, walletAddress: addr });
+      client.terminate();
+    } catch (err: any) {
+      alert('Failed to generate Miden wallet: ' + err.message);
     }
   };
 
@@ -270,18 +275,21 @@ export default function Dashboard() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold mb-2 uppercase tracking-widest text-white/80">Wallet Address</label>
+                <label className="block text-sm font-bold mb-2 uppercase tracking-widest text-white/80">Miden Wallet Address</label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={formData.walletAddress}
                     onChange={(e) => setFormData({...formData, walletAddress: e.target.value})}
-                    placeholder="0x..."
-                    className="w-full border border-white/20 bg-black/50 p-4 focus:outline-none focus:border-[#ff6a00] transition-colors font-mono text-sm"
+                    placeholder="Connect Miden Wallet..."
+                    disabled={!!profile.walletAddress}
+                    className="w-full border border-white/20 bg-black/50 p-4 focus:outline-none focus:border-[#ff6a00] transition-colors font-mono text-sm disabled:opacity-50"
                   />
-                  <button type="button" onClick={connectWallet} className="shrink-0 border border-[#ff6a00] text-[#ff6a00] px-4 py-4 uppercase tracking-widest text-xs font-bold hover:bg-[#ff6a00] hover:text-black transition-colors">
-                    Connect Web3
-                  </button>
+                  {!profile.walletAddress && (
+                    <button type="button" onClick={connectWallet} className="shrink-0 border border-[#ff6a00] text-[#ff6a00] px-4 py-4 uppercase tracking-widest text-xs font-bold hover:bg-[#ff6a00] hover:text-black transition-colors">
+                      Connect Miden
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
