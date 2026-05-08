@@ -30,6 +30,18 @@ service cloud.firestore {
       allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin()) && isValidUser(request.resource.data) &&
         (isAdmin() || request.resource.data.isAdmin == resource.data.isAdmin) &&
         (resource.data.get('walletAddress', '') == '' || resource.data.get('walletAddress', '').matches('^0x.*') || request.resource.data.get('walletAddress', '') == resource.data.get('walletAddress', ''));
+    
+      match /notifications/{notificationId} {
+        function isValidNotification(data) {
+          return data.keys().hasAll(['title', 'message', 'read', 'createdAt']) &&
+                 data.title is string && data.message is string &&
+                 data.read is bool && data.createdAt is number;
+        }
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow create: if isSignedIn() && isAdmin() && isValidNotification(request.resource.data);
+        allow update: if isSignedIn() && request.auth.uid == userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+        allow delete: if isSignedIn() && request.auth.uid == userId;
+      }
     }
 
     function userHasMidenWallet() {
@@ -47,7 +59,8 @@ service cloud.firestore {
                data.imageUrl is string && 
                data.ownerId is string && data.ownerId == request.auth.uid &&
                data.status is string && data.status in ['pending', 'approved', 'rejected'] &&
-               data.createdAt is number && data.updatedAt is number;
+               data.createdAt is number && data.updatedAt is number &&
+               data.get('upvotesCount', 0) is number;
       }
 
       allow read: if true; 
@@ -58,9 +71,34 @@ service cloud.firestore {
       allow create: if isSignedIn() && isValidProject(request.resource.data) && request.resource.data.status == 'pending' && userHasMidenWallet();
       allow update: if isSignedIn() && (
         (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
-        (request.auth.uid == resource.data.ownerId && request.resource.data.ownerId == resource.data.ownerId && request.resource.data.status == resource.data.status)
+        (request.auth.uid == resource.data.ownerId && request.resource.data.ownerId == resource.data.ownerId && request.resource.data.status == resource.data.status) ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['upvotesCount']) && 
+         (request.resource.data.upvotesCount == resource.data.upvotesCount + 1 || request.resource.data.upvotesCount == resource.data.upvotesCount - 1))
       );
       allow delete: if isSignedIn() && (isAdmin() || request.auth.uid == resource.data.ownerId);
+
+      match /comments/{commentId} {
+        function isValidComment(data) {
+          return data.keys().hasAll(['text', 'authorId', 'createdAt']) &&
+                 data.text is string && data.text.size() <= 1000 && data.text.size() > 0 &&
+                 data.authorId is string && data.authorId == request.auth.uid &&
+                 data.createdAt is number;
+        }
+        allow read: if true;
+        allow create: if isSignedIn() && isValidComment(request.resource.data) && userHasMidenWallet();
+        allow delete: if isSignedIn() && (isAdmin() || request.auth.uid == resource.data.authorId);
+      }
+
+      match /upvotes/{upvoteId} {
+        function isValidUpvote(data) {
+          return data.keys().hasAll(['userId', 'createdAt']) &&
+                 data.userId is string && data.userId == request.auth.uid &&
+                 data.createdAt is number;
+        }
+        allow read: if true;
+        allow create: if isSignedIn() && isValidUpvote(request.resource.data) && request.auth.uid == upvoteId && userHasMidenWallet();
+        allow delete: if isSignedIn() && request.auth.uid == upvoteId;
+      }
     }
   }
 }

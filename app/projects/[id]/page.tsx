@@ -10,6 +10,7 @@ import { uploadImageToStorage } from '@/lib/storage';
 import Link from 'next/link';
 import Preloader from '@/components/Preloader';
 import { ExternalLink, Code, ArrowLeft, Trash2, Edit, Save, X } from 'lucide-react';
+import ProjectInteractions from '@/components/ProjectInteractions';
 
 interface Project {
   id: string;
@@ -22,6 +23,7 @@ interface Project {
   ownerId: string;
   status: string;
   createdAt: number;
+  upvotesCount?: number;
 }
 
 export default function ProjectDetail() {
@@ -292,6 +294,8 @@ export default function ProjectDetail() {
             <div className="prose prose-invert prose-orange max-w-none">
               <p className="text-white/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
             </div>
+            
+            <ProjectInteractions projectId={id} initialUpvotes={project.upvotesCount || 0} />
           </div>
 
           <div className="space-y-6">

@@ -29,9 +29,43 @@
         "ownerId": { "type": "string" },
         "status": { "type": "string" },
         "createdAt": { "type": "number" },
-        "updatedAt": { "type": "number" }
+        "updatedAt": { "type": "number" },
+        "upvotesCount": { "type": "number" }
       },
       "required": ["title", "description", "category", "ownerId", "status", "createdAt", "updatedAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A comment left on a project",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "authorId": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["text", "authorId", "createdAt"]
+    },
+    "Upvote": {
+      "title": "Upvote",
+      "description": "An upvote left on a project by a user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["userId", "createdAt"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Real-time notification for a user",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["title", "message", "read", "createdAt"]
     }
   },
   "firestore": {
@@ -39,9 +73,21 @@
       "schema": { "$ref": "#/entities/User" },
       "description": "User profiles. Moderable by admins or self."
     },
+    "users/{userId}/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "User notifications, created by admins and read/updated by the user."
+    },
     "projects/{projectId}": {
       "schema": { "$ref": "#/entities/Project" },
       "description": "Projects submitted to the platform. Read by all (if approved) or owners. Admins can update status."
+    },
+    "projects/{projectId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Comments on a project."
+    },
+    "projects/{projectId}/upvotes/{upvoteId}": {
+      "schema": { "$ref": "#/entities/Upvote" },
+      "description": "Upvotes on a project. upvoteId should be the userId."
     }
   }
 }

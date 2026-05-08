@@ -79,6 +79,10 @@ export default function Submit() {
         throw new Error("Missing Miden Wallet. Please connect your wallet in your dashboard before submitting.");
       }
 
+      if (profile.walletAddress.startsWith('0x')) {
+        throw new Error("Legacy EVM Wallet detected. Please go to your dashboard, disconnect the mock wallet, and reconnect using the official Miden network.");
+      }
+
       try {
         const { WebClient, AccountId } = await import('@miden-sdk/miden-sdk');
         const RPC_ENDPOINT = "https://rpc.testnet.miden.io:443";

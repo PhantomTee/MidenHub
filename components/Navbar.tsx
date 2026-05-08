@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Compass, PlusCircle, LayoutDashboard, User } from 'lucide-react';
+import NotificationsDropdown from './NotificationsDropdown';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -14,6 +15,7 @@ export default function Navbar() {
 
   const links = [
     { href: '/explore', label: 'Explore', icon: <Compass className="w-5 h-5" />, protected: false },
+    { href: '/leaderboard', label: 'Leaderboard', protected: false },
     { href: '/resources', label: 'Resources', protected: false },
     { href: '/submit', label: 'Submit', icon: <PlusCircle className="w-5 h-5" />, protected: true },
     { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, protected: true },
@@ -44,25 +46,31 @@ export default function Navbar() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {user && profile?.walletAddress && (
+          {user && profile?.walletAddress && !profile.walletAddress.startsWith('0x') && (
             <div className="flex flex-col items-end px-3 border-r border-white/20">
               <span className="text-[10px] uppercase text-white/50">Wallet Connected</span>
               <span className="text-[11px] font-mono">{profile.walletAddress.slice(0, 6)}...{profile.walletAddress.slice(-4)}</span>
             </div>
           )}
           {user ? (
-            <button
-              onClick={() => signOut(auth)}
-              className="bg-white text-black font-bold uppercase text-xs px-6 py-2 border-2 border-white hover:bg-[#ff6a00] hover:border-[#ff6a00] transition-all"
+            <div className="flex items-center gap-4">
+              <NotificationsDropdown />
+              <button
+                onClick={() => {
+                localStorage.removeItem("account_id");
+                signOut(auth);
+              }}
+              className="bg-transparent text-[#ff6a00] font-bold uppercase text-xs px-6 py-2 border-2 border-[#ff6a00] hover:bg-[#ff6a00] hover:text-black transition-all"
             >
-              Logout
+              Disconnect
             </button>
+            </div>
           ) : (
             <Link
               href="/login"
               className="bg-white text-black font-bold uppercase text-xs px-6 py-2 border-2 border-white hover:bg-[#ff6a00] hover:border-[#ff6a00] transition-all"
             >
-              Login
+              Connect Wallet
             </Link>
           )}
         </div>

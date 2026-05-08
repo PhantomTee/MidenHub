@@ -15,6 +15,7 @@ interface Project {
   imageUrl: string;
   status: string;
   createdAt: number;
+  upvotesCount?: number;
 }
 
 export default function Explore() {
@@ -94,7 +95,12 @@ export default function Explore() {
               </div>
             )}
             <div className="p-6 flex-1 flex flex-col">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#ff6a00] mb-2">{p.category}</span>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-bold uppercase tracking-widest text-[#ff6a00]">{p.category}</span>
+                <span className="bg-white/10 px-2 py-1 text-xs font-bold text-white flex items-center gap-1">
+                  ⭐ <span className="font-mono">{p.upvotesCount || 0}</span>
+                </span>
+              </div>
               <h2 className="text-xl font-bold tracking-tight mb-3 line-clamp-1">{p.title}</h2>
               <p className="text-sm text-white/50 line-clamp-3 mb-6 flex-1">{p.description}</p>
               
