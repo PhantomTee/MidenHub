@@ -21,6 +21,7 @@ service cloud.firestore {
                data.get('bio', '') is string &&
                data.get('githubUrl', '') is string &&
                data.get('twitterUrl', '') is string &&
+               data.get('isProfileComplete', false) is bool &&
                data.isAdmin is bool;
       }
       
@@ -28,8 +29,7 @@ service cloud.firestore {
       allow list: if true;
       allow create: if isSignedIn() && request.auth.uid == userId && isValidUser(request.resource.data) && request.resource.data.isAdmin == false;
       allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin()) && isValidUser(request.resource.data) &&
-        (isAdmin() || request.resource.data.isAdmin == resource.data.isAdmin) &&
-        (resource.data.get('walletAddress', '') == '' || resource.data.get('walletAddress', '').matches('^0x.*') || request.resource.data.get('walletAddress', '') == resource.data.get('walletAddress', ''));
+        (isAdmin() || request.resource.data.isAdmin == resource.data.isAdmin);
     
       match /notifications/{notificationId} {
         function isValidNotification(data) {

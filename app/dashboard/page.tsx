@@ -38,12 +38,12 @@ export default function Dashboard() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    } else if (user) {
+    if (!loading && (!user || !profile?.walletAddress)) {
+      router.push('/');
+    } else if (user && profile) {
       fetchProjects();
     }
-  }, [user, loading, router]);
+  }, [user, profile, loading, router]);
 
   useEffect(() => {
     if (profile) {
@@ -57,7 +57,7 @@ export default function Dashboard() {
     }
   }, [profile]);
 
-  const fetchProjects = async () => {
+  async function fetchProjects() {
     try {
       let q;
       if (isAdmin) {
@@ -131,10 +131,10 @@ export default function Dashboard() {
   const rejected = projects.filter(p => p.status === 'rejected').length;
 
   let completion = 0;
-  if (profile.username) completion += 20;
+  if (profile.username && profile.username !== `Builder_${profile.walletAddress.substring(0,6)}`) completion += 20;
   if (profile.walletAddress) completion += 20;
   if (profile.bio) completion += 20;
-  if (profile.githubUrl || profile.twitterUrl) completion += 20;
+  if (profile.isProfileComplete) completion += 20;
   if (profile.avatarUrl || avatar) completion += 20;
 
   return (
@@ -155,7 +155,7 @@ export default function Dashboard() {
               <h1 className="text-3xl font-bold tracking-tighter uppercase mb-1">
                 {profile.username || 'Anonymous User'}
               </h1>
-              {profile.walletAddress && !profile.walletAddress.startsWith('0x') && (
+              {profile.walletAddress && (
                 <div className="flex items-center space-x-2 text-[#ff6a00] text-xs font-mono mb-2 bg-[#ff6a00]/10 px-2 py-1 rounded">
                   <Wallet className="w-4 h-4" />
                   <span className="truncate max-w-[150px] sm:max-w-[200px]" title={profile.walletAddress}>
@@ -281,21 +281,27 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
               <div>
                 <label className="block text-sm font-bold mb-2 uppercase tracking-widest text-white/80">GitHub URL</label>
-                <input
-                  type="url"
-                  value={formData.githubUrl}
-                  onChange={(e) => setFormData({...formData, githubUrl: e.target.value})}
-                  className="w-full border border-white/20 bg-black/50 p-4 focus:outline-none focus:border-[#ff6a00] transition-colors"
-                />
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="url"
+                    value={formData.githubUrl}
+                    disabled
+                    className="flex-1 w-full border border-white/20 bg-black/50 p-4 focus:outline-none transition-colors disabled:opacity-50"
+                  />
+                  <Link href="/profile" className="text-xs uppercase font-bold tracking-widest text-[#ff6a00] hover:text-white transition-colors">Manage &rarr;</Link>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-bold mb-2 uppercase tracking-widest text-white/80">Twitter / X URL</label>
-                <input
-                  type="url"
-                  value={formData.twitterUrl}
-                  onChange={(e) => setFormData({...formData, twitterUrl: e.target.value})}
-                  className="w-full border border-white/20 bg-black/50 p-4 focus:outline-none focus:border-[#ff6a00] transition-colors"
-                />
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="url"
+                    value={formData.twitterUrl}
+                    disabled
+                    className="flex-1 w-full border border-white/20 bg-black/50 p-4 focus:outline-none transition-colors disabled:opacity-50"
+                  />
+                  <Link href="/profile" className="text-xs uppercase font-bold tracking-widest text-[#ff6a00] hover:text-white transition-colors">Manage &rarr;</Link>
+                </div>
               </div>
             </div>
 

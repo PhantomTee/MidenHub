@@ -24,7 +24,7 @@ export default function Leaderboard() {
     fetchLeaderboard();
   }, []);
 
-  const fetchLeaderboard = async () => {
+  async function fetchLeaderboard() {
     try {
       // 1. Fetch all users
       const usersSnapshot = await getDocs(collection(db, 'users'));

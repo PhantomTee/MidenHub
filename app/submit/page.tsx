@@ -26,30 +26,19 @@ export default function Submit() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
+    if (!loading && (!user || !profile?.walletAddress)) {
+      router.push('/');
     }
-  }, [user, loading, router]);
+  }, [user, profile, loading, router]);
 
-  const calculateProfileCompletion = () => {
-    if (!profile) return 0;
-    let score = 0;
-    if (profile.username) score += 20;
-    if (profile.walletAddress) score += 20;
-    if (profile.bio) score += 20;
-    if (profile.githubUrl || profile.twitterUrl) score += 20;
-    if (profile.avatarUrl) score += 20;
-    return score;
-  };
-
-  const isEligible = calculateProfileCompletion() >= 70;
+  const isEligible = profile?.isProfileComplete || false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     
     if (!isEligible) {
-      setErrorMessage('Eligibility Error: Your profile must be at least 70% complete to submit a project.');
+      setErrorMessage('Eligibility Error: Your profile must be completed (Social Links connected) to submit a project.');
       return;
     }
 
@@ -76,11 +65,7 @@ export default function Submit() {
 
     try {
       if (!profile?.walletAddress) {
-        throw new Error("Missing Miden Wallet. Please connect your wallet in your dashboard before submitting.");
-      }
-
-      if (profile.walletAddress.startsWith('0x')) {
-        throw new Error("Legacy EVM Wallet detected. Please go to your dashboard, disconnect the mock wallet, and reconnect using the official Miden network.");
+        throw new Error("Missing Miden Wallet. Please connect your wallet before submitting.");
       }
 
       try {

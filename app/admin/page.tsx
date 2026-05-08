@@ -35,7 +35,7 @@ export default function AdminDashboard() {
     }
   }, [user, isAdmin, loading, router]);
 
-  const fetchProjects = async () => {
+  async function fetchProjects() {
     try {
       const q = query(collection(db, 'projects'));
       const snapshot = await getDocs(q);
